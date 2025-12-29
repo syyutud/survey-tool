@@ -36,7 +36,7 @@
     meta[prop.name] = prop;
   });
 
-  $filterBy = structure.filterBy;
+  /$filterBy = structure.filterBy;
   $filterBy.forEach((prop) => {
     if (prop.values) {
       if (prop.name in meta && meta[prop.name].type === "MultiSelect") {
@@ -50,7 +50,28 @@
       });
     }
   });
-  addMissingValues();
+  addMissingValues();/
+
+dataMeta.meta.forEach((prop) => {
+    meta[prop.name] = prop;
+});
+
+$filterBy = structure.filterBy;
+$filterBy.forEach((prop) => {
+    if (prop.values) {
+        if (prop.name in meta && meta[prop.name].type === "MultiSelect") {
+            prop.selected = [];
+        }
+    } else {
+        prop.categories.forEach((option) => {
+            if (option.name in meta && meta[option.name].type === "MultiSelect") {
+                option.selected = [];
+            }
+        });
+    }
+});
+addMissingValues();
+
 
   function freqCount(prop, arrValue, freqDict) {
     if (prop in meta && meta[prop].type === "MultiSelect") {
