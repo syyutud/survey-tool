@@ -52,10 +52,6 @@
   });
   addMissingValues();*/
 
-dataMeta.meta.forEach((prop) => {
-    meta[prop.name] = prop;
-});
-
 $filterBy = structure.filterBy;
 $filterBy.forEach((prop) => {
     if (prop.values) {
