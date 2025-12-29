@@ -4,6 +4,7 @@
   import { CogOutline  } from "flowbite-svelte-icons";
   import StackGraph from "./vis/stackGraph.svelte";
   import CorrMetric from "./vis/corrMetric.svelte";
+  import GraphView from "./vis/GraphView.svelte";
   import { filterBy } from "./store";
   export let data;
   
@@ -170,6 +171,28 @@
         />
       </div>
     </AccordionItem>
+<AccordionItem>
+  <div slot="header" style="display:flex">
+    Graph View
+    <Button
+      pill
+      outline
+      class="!p-1 border-0"
+      on:click={(e) => {
+        e.stopPropagation();
+        showHideSettings("graph-hidable");
+      }}
+    >
+      <CogOutline />
+    </Button>
+  </div>
+
+  <div class="graph-hidable hidden">
+    <P style="padding-left:20px">Graph settings placeholder</P>
+  </div>
+
+  <GraphView {data} />
+</AccordionItem>
   </Accordion>
 </div>
 
