@@ -3,7 +3,7 @@
     {
       "name": "Topic",
       "type": "MultiSelect",
-      "values": []
+      "values": [],
        "categories": []
     },
     {
