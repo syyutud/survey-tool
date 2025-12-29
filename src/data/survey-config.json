@@ -1,17 +1,21 @@
 {
-  "title": "示例问卷",
-  "questions": [
-    {
-      "id": 1,
-      "text": "你喜欢哪种颜色？",
-      "type": "single-choice",
-      "options": ["红色", "蓝色", "绿色"]
-    },
-    {
-      "id": 2,
-      "text": "你喜欢的运动？",
-      "type": "multiple-choice",
-      "options": ["跑步", "游泳", "爬山"]
-    }
-  ]
+    "filterBy": [
+        {"name": "Topic", "type": "MultiSelect"},
+        {"name": "Year", "type": "String"}
+    ],
+    "detailView": [
+        "Name",
+        "Authors",
+        "DOI",
+        "Bibtex",
+        "Topic"
+    ],
+    "summaryView": [
+        "Name",
+        "Year",
+        "Topic"
+    ],
+    "topView": [
+        "Name"
+    ]
 }
