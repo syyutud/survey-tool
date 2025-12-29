@@ -1,21 +1,29 @@
 {
-    "filterBy": [
-        {"name": "Topic", "type": "MultiSelect"},
-        {"name": "Year", "type": "String"}
-    ],
-    "detailView": [
-        "Name",
-        "Authors",
-        "DOI",
-        "Bibtex",
-        "Topic"
-    ],
-    "summaryView": [
-        "Name",
-        "Year",
-        "Topic"
-    ],
-    "topView": [
-        "Name"
-    ]
+  "filterBy": [
+    {
+      "name": "Topic",
+      "type": "MultiSelect",
+      "values": []
+    },
+    {
+      "name": "Year",
+      "type": "String",
+      "values": []
+    }
+  ],
+  "detailView": [
+    "Name",
+    "Authors",
+    "DOI",
+    "Bibtex",
+    "Topic"
+  ],
+  "summaryView": [
+    "Name",
+    "Year",
+    "Topic"
+  ],
+  "topView": [
+    "Name"
+  ]
 }
