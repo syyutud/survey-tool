@@ -36,7 +36,7 @@
     meta[prop.name] = prop;
   });
 
-  /$filterBy = structure.filterBy;
+  /*$filterBy = structure.filterBy;
   $filterBy.forEach((prop) => {
     if (prop.values) {
       if (prop.name in meta && meta[prop.name].type === "MultiSelect") {
@@ -50,7 +50,7 @@
       });
     }
   });
-  addMissingValues();/
+  addMissingValues();*/
 
 dataMeta.meta.forEach((prop) => {
     meta[prop.name] = prop;
