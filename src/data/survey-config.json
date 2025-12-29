@@ -4,11 +4,13 @@
       "name": "Topic",
       "type": "MultiSelect",
       "values": []
+       "categories": []
     },
     {
       "name": "Year",
       "type": "String",
-      "values": []
+      "values": [],
+       "categories": []
     }
   ],
   "detailView": [
