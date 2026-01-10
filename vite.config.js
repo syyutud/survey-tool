@@ -9,7 +9,15 @@ import { viteSingleFile } from "vite-plugin-singlefile"
 //});
 
 
-export default defineConfig({
+/*export default defineConfig({
   base: "./",
   plugins: [svelte(), viteSingleFile()],
-});
+});*/
+
+export default defineConfig(({ command }) => ({
+  base: "./",
+  plugins: [
+    svelte(),
+    command === "build" && viteSingleFile(),
+  ].filter(Boolean),
+}));
