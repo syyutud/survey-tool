@@ -1,85 +1,81 @@
 <script>
-  // 之后你可以把 images 当成 props 传进来
-  export let images = [];
+  export let data;
+
+  // 占位数据结构：将来一键替换
+  let papers = [
+    { id: 1, image: null, url: "", keywords: [] },
+    { id: 2, image: null, url: "", keywords: [] },
+    { id: 3, image: null, url: "", keywords: [] },
+    { id: 4, image: null, url: "", keywords: [] }
+  ];
 </script>
 
-<div class="graph-view-container">
-  {#if images.length === 0}
-    <!-- 空白占位态 -->
-    <div class="empty-state">
-      <div class="grid">
-        {#each Array(12) as _, i}
-          <div class="grid-item placeholder">
-            <div class="img-box"></div>
-            <a href="javascript:void(0)">link #{i + 1}</a>
-          </div>
-        {/each}
-      </div>
-    </div>
-  {:else}
-    <!-- 真实数据态（以后再接） -->
-    <div class="grid">
-      {#each images as img}
-        <div class="grid-item">
-          <img src={img.src} alt={img.title} />
-          <a href={img.link} target="_blank">{img.title}</a>
+<div class="graph-content">
+
+  <div class="grid">
+    {#each papers as paper}
+      <div class="paper-card">
+
+        <div class="image-slot">
+          {#if paper.image}
+            <img src={paper.image} alt="paper image" />
+          {:else}
+            <span>Upload Image</span>
+          {/if}
         </div>
-      {/each}
-    </div>
-  {/if}
+
+        <div class="paper-meta">
+          <div class="url">
+            {paper.url || "URL: (empty)"}
+          </div>
+          <div class="keywords">
+            {paper.keywords.length
+              ? paper.keywords.join(", ")
+              : "keywords: (empty)"}
+          </div>
+        </div>
+
+      </div>
+    {/each}
+  </div>
+
 </div>
 
 <style>
-  .graph-view-container {
-    height: 100%;
-    overflow-y: auto; /* 关键：中间区域可滚动 */
-    padding: 16px;
+  .graph-content {
+    padding: 10px 20px;
+    max-height: 420px;
+    overflow-y: auto;
   }
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
   }
 
-  .grid-item {
+  .paper-card {
+    font-size: 11px;
+  }
+
+  .image-slot {
+    height: 120px;
+    border: 1px dashed #555;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 12px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    margin-bottom: 6px;
   }
 
-  .grid-item a {
-    color: #4ea1ff;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .grid-item a:hover {
-    text-decoration: underline;
-  }
-
-  /* 占位样式 */
-  .placeholder .img-box {
+  .image-slot img {
     width: 100%;
-    aspect-ratio: 1 / 1;
-    background: linear-gradient(
-      90deg,
-      #2a2a2a 25%,
-      #333 37%,
-      #2a2a2a 63%
-    );
-    background-size: 400% 100%;
-    animation: shimmer 1.4s ease infinite;
-    border-radius: 6px;
+    height: 100%;
+    object-fit: cover;
   }
 
-  @keyframes shimmer {
-    0% { background-position: 100% 0; }
-    100% { background-position: 0 0; }
-  }
-
-  .empty-state {
-    opacity: 0.8;
+  .paper-meta {
+    opacity: 0.75;
+    line-height: 1.3;
   }
 </style>
