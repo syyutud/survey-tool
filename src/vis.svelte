@@ -6,6 +6,7 @@
   import CorrMetric from "./vis/corrMetric.svelte";
   import GraphView from "./vis/GraphView.svelte";
   import { filterBy } from "./store";
+  import { showGraphView } from './store';
   export let data;
   
   let width;
