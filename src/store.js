@@ -6,6 +6,9 @@ export const searchFilter = writable("");
 
 export const urlParams = writable(new URLSearchParams(window.location.search));
 
+/* GraphView UI 状态（新增）*/
+export const showGraphView = writable(false);
+
 let prevUrl = undefined;
 setInterval(() => {
   const currUrl = window.location.href;
