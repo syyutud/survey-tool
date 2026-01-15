@@ -75,7 +75,7 @@ addMissingValues();
         return;
       }
       arrValue.forEach((value) => {
-        if (prop in freq) {
+       if (prop in freqDict) {
           freqDict[prop][value]
             ? freqDict[prop][value]++
             : (freqDict[prop][value] = 1);
@@ -94,37 +94,47 @@ addMissingValues();
     paper["selected"] = false;
   });
 
-  function addMissingValues() {
-    $filterBy.forEach((group) => {
-      if ("groupName" in group) {
-        group["categories"].forEach((cate) => {
-          if (!("values" in cate)) {
-            const topics = new Set();
-            dataMeta.data.forEach((paper) => {
-              if (cate["name"] in paper) {
-                paper[cate["name"]].forEach((word) => {
-                  topics.add(word);
-                });
-              }
-            });
-            cate["values"] = [...topics];
-          }
-        });
-      } else {
-        if (!("values" in group)) {
+ function addMissingValues() {
+  $filterBy.forEach((group) => {
+    // 分组（有 groupName + categories）
+    if ("groupName" in group) {
+      group.categories.forEach((cate) => {
+        const needsFill =
+          !("values" in cate) ||
+          (Array.isArray(cate.values) && cate.values.length === 0);
+
+        if (needsFill) {
           const topics = new Set();
           dataMeta.data.forEach((paper) => {
-            if (group["name"] in paper) {
-              paper[group["name"]].forEach((word) => {
-                topics.add(word);
-              });
+            if (cate.name in paper && Array.isArray(paper[cate.name])) {
+              paper[cate.name].forEach((word) => topics.add(word));
             }
           });
-          group["values"] = [...topics];
+          cate.values = [...topics].filter((x) => x !== "");
         }
+      });
+    } else {
+      // 非分组（只有 name + values）
+      const needsFill =
+        !("values" in group) ||
+        (Array.isArray(group.values) && group.values.length === 0);
+
+      if (needsFill) {
+        const topics = new Set();
+        dataMeta.data.forEach((paper) => {
+          if (group.name in paper && Array.isArray(paper[group.name])) {
+            paper[group.name].forEach((word) => topics.add(word));
+          }
+        });
+        group.values = [...topics].filter((x) => x !== "");
       }
-    });
-  }
+    }
+  });
+
+  // 触发 store 更新（确保 UI 重新渲染）
+  $filterBy = $filterBy;
+}
+
 
   function applyFilters(searchFilter, timeFilters, filterBy) {
     //This is a shallow copy, we only interested in the order
