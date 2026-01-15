@@ -10,33 +10,27 @@
   export let data;
   
   let width;
-  let choicesDim = [];
+ let choicesDim = [];
 
-  //Get the list of dimension to visualize
-  $filterBy.forEach((prop, i) => {
-    //This contains two levels of grouping
-    if ("groupName" in prop) {
-      choicesDim.push({ name: prop.groupName, index: i });
-    } else {
-      //One level deep
-      choicesDim.push({ name: prop.name, index: i });
-    }
-  });
-  $: selectedDimX = choicesDim[0];
-  $: selectedDimY = choicesDim[1];
-  $: selectedCate = choicesDim[0];
-  $: selectedSubCate = choicesDim[0];
-  $: subCates = [];
-  $: if ("groupName" in $filterBy[selectedCate.index]) {
-    subCates = [];
-    subCates.push("All");
-    $filterBy[selectedCate.index].categories.forEach((cate) => {
-      subCates.push(cate.name);
-    });
-    selectedSubCate = "All";
-  } else {
-    selectedSubCate = selectedCate;
-  }
+//  reactive 生成 choicesDim，避免重复 push
+$: choicesDim = $filterBy.map((prop, i) =>
+  "groupName" in prop ? { name: prop.groupName, index: i } : { name: prop.name, index: i }
+);
+
+$: selectedDimX = choicesDim[0];
+$: selectedDimY = choicesDim[1];
+$: selectedCate = choicesDim[0];
+$: selectedSubCate = choicesDim[0];
+
+//  防止 selectedCate 为空时报错
+$: subCates = [];
+$: if (selectedCate && $filterBy[selectedCate.index] && "groupName" in $filterBy[selectedCate.index]) {
+  subCates = ["All"];
+  $filterBy[selectedCate.index].categories.forEach((cate) => subCates.push(cate.name));
+  selectedSubCate = "All";
+} else {
+  selectedSubCate = selectedCate;
+}
 
   $: showHideSettings = (which) => {
     Array.from(document.getElementsByClassName(which)).forEach((el) => {
@@ -49,24 +43,52 @@
 
 <div class="vis-panel dark:bg-gray-900">
   <Accordion>
+
+    <!--  1) Graph View 放最上 -->
     <AccordionItem open={true}>
-      <div slot="header" style="display:flex">Correlation Matrix 
+      <div slot="header" style="display:flex">
+        Graph View
+        <Button
+          pill
+          outline
+          class="!p-1 border-0"
+          id="graph-settings"
+          on:click={(e) => {
+            e.stopPropagation();
+            showHideSettings("graph-hidable");
+          }}
+        >
+          <CogOutline />
+          <Tooltip triggeredBy="#graph-settings" placement="bottom">Settings</Tooltip>
+        </Button>
+      </div>
+
+      <div class="graph-hidable hidden">
+        <P style="padding-left:20px">Graph settings placeholder</P>
+      </div>
+
+      <GraphView {data} />
+    </AccordionItem>
+
+    <!--  2) Correlation Matrix -->
+    <AccordionItem open={true}>
+      <div slot="header" style="display:flex">
+        Correlation Matrix
         <Button
           pill={true}
           outline
           class="!p-1 border-0"
-          id="other-surveys"
-          on:click={(eve) =>  {
-              eve.stopPropagation();
-              showHideSettings("corr-hidable");
-            }}
+          id="corr-settings"
+          on:click={(eve) => {
+            eve.stopPropagation();
+            showHideSettings("corr-hidable");
+          }}
         >
           <CogOutline />
-          <Tooltip triggeredBy="#other-surveys" placement="bottom">Settings</Tooltip>
+          <Tooltip triggeredBy="#corr-settings" placement="bottom">Settings</Tooltip>
         </Button>
-
       </div>
-      
+
       <div class="flexy">
         <div class="flex flex-wrap space-x-1 pb-3 items-center corr-hidable hidden">
           <P style="padding-left:20px">X-Axis:</P>
@@ -77,10 +99,10 @@
               class="p-1 {dim.name === selectedDimX.name
                 ? 'dark:bg-gray-400 dark:text-primary-200'
                 : 'cursor-pointer'}"
-              on:click={() => {
-                selectedDimX = dim;
-              }}>{dim.name}</Button
+              on:click={() => (selectedDimX = dim)}
             >
+              {dim.name}
+            </Button>
           {/each}
         </div>
 
@@ -93,42 +115,43 @@
               class="p-1 {dim.name === selectedDimY.name
                 ? 'dark:bg-gray-400 dark:text-primary-200'
                 : 'cursor-pointer'}"
-              on:click={() => {
-                selectedDimY = dim;
-              }}>{dim.name}</Button
+              on:click={() => (selectedDimY = dim)}
             >
+              {dim.name}
+            </Button>
           {/each}
         </div>
       </div>
 
-      <!-- Create the visualization -->
       <CorrMetric
         {data}
-        selectedDimX={selectedDimX.name}
-        selectedDimY={selectedDimY.name}
+        selectedDimX={selectedDimX?.name}
+        selectedDimY={selectedDimY?.name}
         on:message
       />
     </AccordionItem>
+
+    <!--  3) Over the Years -->
     <AccordionItem>
-      <div slot="header" style="display:flex">Over the Years
-      <Button
+      <div slot="header" style="display:flex">
+        Over the Years
+        <Button
           pill={true}
           outline
           class="!p-1 border-0"
-          id="other-surveys"
-          on:click={(eve) =>  {
-              eve.stopPropagation();
-              showHideSettings("stack-hidable");
-            }}
+          id="stack-settings"
+          on:click={(eve) => {
+            eve.stopPropagation();
+            showHideSettings("stack-hidable");
+          }}
         >
           <CogOutline />
-          <Tooltip triggeredBy="#other-surveys" placement="bottom">Settings</Tooltip>
+          <Tooltip triggeredBy="#stack-settings" placement="bottom">Settings</Tooltip>
         </Button>
-
       </div>
 
       <div class="flexy">
-        <div class="stack-hidable hidden"> 
+        <div class="stack-hidable hidden">
           <div class="flex flex-wrap space-x-1 pb-3 items-center">
             <P style="padding-left:20px">Categories:</P>
             {#each choicesDim as dim}
@@ -138,12 +161,13 @@
                 class="p-1 {dim.name === selectedCate.name
                   ? 'dark:bg-gray-400 dark:text-primary-200'
                   : 'cursor-pointer'}"
-                on:click={() => {
-                  selectedCate = dim;
-                }}>{dim.name}</Button
+                on:click={() => (selectedCate = dim)}
               >
+                {dim.name}
+              </Button>
             {/each}
           </div>
+
           {#if subCates.length > 0}
             <div class="flex flex-wrap space-x-1 pb-3 items-center">
               <P style="padding-left:20px">Sub-Categories:</P>
@@ -154,15 +178,15 @@
                   class="p-1 {subcate === selectedSubCate
                     ? 'dark:bg-gray-400 dark:text-primary-200'
                     : 'cursor-pointer'}"
-                  on:click={() => {
-                    selectedSubCate = subcate;
-                  }}>{subcate}</Button
+                  on:click={() => (selectedSubCate = subcate)}
                 >
+                  {subcate}
+                </Button>
               {/each}
             </div>
           {/if}
         </div>
-        
+
         <StackGraph
           {data}
           selectedCate={selectedSubCate === "All"
@@ -172,30 +196,10 @@
         />
       </div>
     </AccordionItem>
-<AccordionItem>
-  <div slot="header" style="display:flex">
-    Graph View
-    <Button
-      pill
-      outline
-      class="!p-1 border-0"
-      on:click={(e) => {
-        e.stopPropagation();
-        showHideSettings("graph-hidable");
-      }}
-    >
-      <CogOutline />
-    </Button>
-  </div>
 
-  <div class="graph-hidable hidden">
-    <P style="padding-left:20px">Graph settings placeholder</P>
-  </div>
-
-  <GraphView {data} />
-</AccordionItem>
   </Accordion>
 </div>
+
 
 <style>
   .vis-panel {
