@@ -29,7 +29,7 @@ $: if (selectedCate && $filterBy[selectedCate.index] && "groupName" in $filterBy
   $filterBy[selectedCate.index].categories.forEach((cate) => subCates.push(cate.name));
   selectedSubCate = "All";
 } else {
-  selectedSubCate = selectedCate;
+  selectedSubCate = selectedCate?.name;
 }
 
   $: showHideSettings = (which) => {
@@ -187,13 +187,12 @@ $: if (selectedCate && $filterBy[selectedCate.index] && "groupName" in $filterBy
           {/if}
         </div>
 
-        <StackGraph
-          {data}
-          selectedCate={selectedSubCate === "All"
-            ? selectedCate.name
-            : selectedSubCate}
-          on:message
-        />
+      <StackGraph
+  {data}
+  selectedCate={selectedSubCate === "All" ? selectedCate?.name : selectedSubCate}
+  on:message
+/>
+
       </div>
     </AccordionItem>
 
