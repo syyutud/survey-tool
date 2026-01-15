@@ -8,16 +8,24 @@
   export let data = [];
   export let filteredData = [];
 
-  let minYear;
-  let maxYear;
+  let minYear = 0;
+let maxYear = 0;
 
-  // 只有在 data 有内容时才计算年份范围
-  $: if (Array.isArray(data) && data.length > 0) {
-    [minYear, maxYear] = d3.extent(data, (d) => (d.Year && +d.Year ? Number(d.Year) : undefined));
-    if (minYear != null && maxYear != null) {
-      timeFilters.set({ start: minYear, end: maxYear });
-    }
+// ✅ 先给 slider 一个有效默认值
+let value = [0, 0];
+
+$: if (Array.isArray(data) && data.length > 0) {
+  const extent = d3.extent(data, (d) => (d.Year && +d.Year ? Number(d.Year) : undefined));
+  minYear = extent[0] ?? 0;
+  maxYear = extent[1] ?? 0;
+
+  // ✅ 如果 slider 还没初始化过，就把它设成完整范围
+  if (value[0] === 0 && value[1] === 0) {
+    value = [minYear, maxYear];
+    timeFilters.set({ start: minYear, end: maxYear });
   }
+}
+
 
   // slider 值
   $: value =
