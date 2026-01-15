@@ -73,15 +73,18 @@
 		<P>{value[1]}</P>
 	</div>
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<RangeSlider
-	 	range
-		bind:values={value}
-		min={minYear}
-		max={maxYear}
-		step={1}
-		pushy
-		on:stop={() => onRangeUpdate()}
-	/>
+	{#if minYear != null && maxYear != null}
+  <RangeSlider
+    range
+    bind:values={value}
+    min={minYear}
+    max={maxYear}
+    step={1}
+    pushy
+    on:stop={() => onRangeUpdate()}
+  />
+{/if}
+
 
 	<div class="chart">
 		<svg width={width} height={height}>
