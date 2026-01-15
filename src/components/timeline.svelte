@@ -1,57 +1,70 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
+  import RangeSlider from "svelte-range-slider-pips";
+  import { P } from "flowbite-svelte";
+  import { timeFilters } from "../store";
+  import * as d3 from "d3";
 
-	import RangeSlider from 'svelte-range-slider-pips'
-	import {Heading, P} from "flowbite-svelte";
-	import { timeFilters } from "../store"
-	import * as d3 from 'd3';
+  export let data = [];
+  export let filteredData = [];
 
-	export let data;
-	export let filteredData;
-	let minYear;
-	let maxYear;
-	$: value = [minYear, maxYear];
-	const padding = {top:3, bottom:3, left:3, right:3};
-	const gap = 1;
+  let minYear;
+  let maxYear;
 
-	function onRangeUpdate() {
-		timeFilters.set({start:value[0], end:value[1]})
-	}
+  // 只有在 data 有内容时才计算年份范围
+  $: if (Array.isArray(data) && data.length > 0) {
+    [minYear, maxYear] = d3.extent(data, (d) => (d.Year && +d.Year ? Number(d.Year) : undefined));
+    if (minYear != null && maxYear != null) {
+      timeFilters.set({ start: minYear, end: maxYear });
+    }
+  }
 
-	[minYear, maxYear] = d3.extent(data, (d) => {
-		if (d.Year && +d.Year) return Number(d.Year);
-	});
+  // slider 值
+  $: value =
+    minYear != null && maxYear != null
+      ? [$timeFilters.start ?? minYear, $timeFilters.end ?? maxYear]
+      : [0, 0];
 
-	timeFilters.set({start:minYear, end:maxYear})
-	const width = 250, height = 50;
- 
-	const convertData = (data, min, max) => {
-		let res = {};
-		for (var i = min; i <= max; i++) {
-			res[i] = 0;
-		}
-		data.forEach((entry) => {
-			if (+entry.Year) res[+entry.Year] += 1;
-		});
-		return Object.values(res);
-	};
-	let binData = convertData(data, minYear, maxYear);
-	$:filterBinData = convertData(filteredData, minYear, maxYear);
+  function onRangeUpdate() {
+    if (minYear == null || maxYear == null) return;
+    timeFilters.set({ start: value[0], end: value[1] });
+  }
 
-	var x = d3.scaleLinear().domain([minYear, maxYear]).range([0, width]);
-	var y = d3
-		.scaleLinear()
-		.domain([0, d3.max(binData)])
-		.range([height - padding.top - padding.bottom, 0]);
-	const bandWidth = (1.0 / binData.length) * (width - padding.left - padding.right) - gap;
-	$: color = (i) => {
-		let year = i + minYear;
-		if (year < value[0] || year > value[1]) {
-			return '#808080';
-		} else {
-			return 'var(--primary)';
-		}
-	};
+  const padding = { top: 3, bottom: 3, left: 3, right: 3 };
+  const gap = 1;
+  const width = 250,
+    height = 50;
+
+  const convertData = (arr, min, max) => {
+    if (!Array.isArray(arr) || min == null || max == null) return [];
+    let res = {};
+    for (let i = min; i <= max; i++) res[i] = 0;
+    arr.forEach((entry) => {
+      if (+entry.Year) res[+entry.Year] += 1;
+    });
+    return Object.values(res);
+  };
+
+  $: binData = convertData(data, minYear, maxYear);
+  $: filterBinData = convertData(filteredData, minYear, maxYear);
+
+  $: x = d3.scaleLinear().domain([minYear ?? 0, maxYear ?? 0]).range([0, width]);
+  $: y = d3
+    .scaleLinear()
+    .domain([0, d3.max(binData) ?? 0])
+    .range([height - padding.top - padding.bottom, 0]);
+
+  $: bandWidth =
+    binData.length > 0
+      ? (1.0 / binData.length) * (width - padding.left - padding.right) - gap
+      : 0;
+
+  $: color = (i) => {
+    if (minYear == null) return "#808080";
+    let year = i + minYear;
+    if (year < value[0] || year > value[1]) return "#808080";
+    return "var(--primary)";
+  };
 </script>
 
 <div class="timeline-container">
