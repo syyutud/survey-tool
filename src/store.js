@@ -8,6 +8,7 @@ export const urlParams = writable(new URLSearchParams(window.location.search));
 
 /* GraphView UI 状态（新增）*/
 export const showGraphView = writable(false);
+export const hoveredPaperKey = writable(null);
 
 let prevUrl = undefined;
 setInterval(() => {
