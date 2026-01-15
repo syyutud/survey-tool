@@ -61,18 +61,27 @@
     {#each $filterBy as prop}
       <!-- <Panel square extend style="padding-bottom: 30px; padding-left:10px"> -->
 
-      {#if prop.values && prop.values.length > 0}
-          <FilterGroup {...prop} freqGroup={freq[prop.name]} on:message />
-      {:else}
-        <Heading tag="h6" class="mt-5">{prop.groupName}</Heading>
-        {#each prop.categories as option}
-            <FilterGroup
-              {...option}
-              freqGroup={freq[option.name]}
-              on:message
-            />
-        {/each}
-      {/if}
+     {#if prop && prop.values && Array.isArray(prop.values) && prop.values.length > 0}
+  <FilterGroup
+    {...prop}
+    freqGroup={freq?.[prop.name] ?? {}}
+    on:message
+  />
+{:else if prop && "groupName" in prop && Array.isArray(prop.categories)}
+  <Heading tag="h6" class="mt-5">{prop.groupName}</Heading>
+  {#each prop.categories as option}
+    {#if option?.values && Array.isArray(option.values) && option.values.length > 0}
+      <FilterGroup
+        {...option}
+        freqGroup={freq?.[option.name] ?? {}}
+        on:message
+      />
+    {/if}
+  {/each}
+{:else}
+  <!-- values 还没被 addMissingValues() 填充时，不渲染，避免整个页面挂掉 -->
+{/if}
+
     {/each}
   </Accordion>
 
