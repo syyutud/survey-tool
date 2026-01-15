@@ -1,31 +1,24 @@
 {
   "filterBy": [
-    {
-      "name": "Topic",
-      "type": "MultiSelect",
-      "values": [],
-       "categories": []
-    },
-    {
-      "name": "Year",
-      "type": "String",
-      "values": [],
-       "categories": []
+    { "name": "Topic", "values": [] },
+    { "name": "Year", "values": [] }
+  ],
+  "detailView": {
+    "view": "normal",
+    "show": ["Name", "Authors", "Year", "DOI", "Bibtex", "Topic"]
+  },
+  "summaryView": {
+    "view": "text",
+    "showImg": false,
+    "show": ["Name", "Year", "Topic"]
+  },
+  "topView": {
+    "title": "Hybrid User Interfaces",
+    "description": "Interactive survey browser (dev config).",
+    "authors": "—",
+    "addEntry": {
+      "description": [],
+      "github": ""
     }
-  ],
-  "detailView": [
-    "Name",
-    "Authors",
-    "DOI",
-    "Bibtex",
-    "Topic"
-  ],
-  "summaryView": [
-    "Name",
-    "Year",
-    "Topic"
-  ],
-  "topView": [
-    "Name"
-  ]
+  }
 }
