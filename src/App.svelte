@@ -18,6 +18,7 @@
   let activateClickOutside = true;
   let drawerHidden = false;
   let innerHeight = 0;
+  let innerWidth = 0;
   let showVis = true;
   let showPapers = true;
 
