@@ -12,7 +12,7 @@
 	export let data;
 	export let filteredData;
 
-  $:topics = selectTopics
+ $: topics = Array.isArray(selectTopics) ? selectTopics : [];
 
   const removeSelection = (select) => {
     $filterBy.forEach((prop) => {
