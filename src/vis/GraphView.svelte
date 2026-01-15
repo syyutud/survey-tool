@@ -55,7 +55,13 @@ export let data = [];
   }
 
 // ✅ 生成稳定 key：优先 DOI，否则 Name-Year
-  const paperKey = (p) => (p?.DOI ? `doi:${p.DOI}` : `name:${p?.Name ?? ""}-${p?.Year ?? ""}`);
+  // ✅ 生成稳定 key（和 paperCard 完全一致）
+const paperKey = (p) => {
+  const doi = (p?.DOI ?? "").trim();
+  return doi
+    ? `doi:${doi}`
+    : `name:${p?.Name ?? ""}-${p?.Year ?? ""}`;
+};
 
 </script>
 
