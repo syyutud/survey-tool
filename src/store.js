@@ -1,7 +1,7 @@
 import { writable } from "svelte/store";
 
 export const filterBy = writable([]);
-export const timeFilters = writable({ start: 2013, end: 2022 });
+export const timeFilters = writable({ start: 0, end: 9999 });
 export const searchFilter = writable("");
 
 export const urlParams = writable(new URLSearchParams(window.location.search));
