@@ -6,18 +6,13 @@
   import FilterPanel from "./filterPanel.svelte";
   import Header from "./header.svelte";
   import Vis from "./vis.svelte";
-  import structure from "./data/survey-config.json";
-  import dataMeta from "./data/survey-data.json";
+  import structureRaw from "./data/survey-config.json";
+  import dataMetaRaw from "./data/survey-data.json";
   import { searchFilter, timeFilters, filterBy } from "./store";
   import { sineIn } from "svelte/easing";
   import SearchField from "./components/searchField.svelte";
 
-  let transitionParams = {
-    x: -320,
-    duration: 200,
-    easing: sineIn,
-  };
-
+  let transitionParams = { x: -320, duration: 200, easing: sineIn };
   let headerPx = 45;
   let backdrop = false;
   let activateClickOutside = true;
@@ -25,60 +20,125 @@
   let innerHeight = 0;
   let showVis = true;
   let showPapers = true;
+
   let filteredData = [];
   let meta = {};
   let freq = {};
   let filteredFreq = {};
   let selectTopics = [];
 
-  //Restructuring parts of the data passed in
-  dataMeta.meta.forEach((prop) => {
-    meta[prop.name] = prop;
+  /**
+   * ✅ Normalize config & data schema
+   * 兼容你之前的测试版/脚本版/旧版结构，避免任何字段缺失导致白屏
+   */
+  function normalizeStructure(s) {
+    const safe = s ?? {};
+
+    // detailView / summaryView 允许是数组或对象，统一成 { show: [] }
+    const detailView =
+      Array.isArray(safe.detailView)
+        ? { view: "normal", show: safe.detailView }
+        : (safe.detailView ?? { view: "normal", show: [] });
+
+    const summaryView =
+      Array.isArray(safe.summaryView)
+        ? { view: "text", showImg: false, show: safe.summaryView }
+        : (safe.summaryView ?? { view: "text", showImg: false, show: [] });
+
+    const topView =
+      Array.isArray(safe.topView)
+        ? { title: safe.topView?.[0] ?? "Survey", description: "", authors: "", addEntry: { description: [], github: "" } }
+        : (safe.topView ?? { title: "Survey", description: "", authors: "", addEntry: { description: [], github: "" } });
+
+    // filterBy：允许是 ["Topic"] 或 [{name:"Topic"}] 或 groupName 结构
+    let filterByArr = safe.filterBy ?? [];
+    if (Array.isArray(filterByArr) && filterByArr.length > 0 && typeof filterByArr[0] === "string") {
+      filterByArr = filterByArr.map((name) => ({ name }));
+    }
+
+    return { ...safe, filterBy: filterByArr, detailView, summaryView, topView };
+  }
+
+  function normalizeData(d) {
+    const safe = d ?? {};
+    return {
+      meta: Array.isArray(safe.meta) ? safe.meta : [],
+      data: Array.isArray(safe.data) ? safe.data : []
+    };
+  }
+
+  const structure = normalizeStructure(structureRaw);
+  const dataMeta = normalizeData(dataMetaRaw);
+
+  // ✅ build meta dict safely
+  meta = {};
+  (dataMeta.meta ?? []).forEach((prop) => {
+    if (prop?.name) meta[prop.name] = prop;
   });
 
-  /*$filterBy = structure.filterBy;
+  // ✅ init filterBy store safely
+  $filterBy = Array.isArray(structure.filterBy) ? structuredClone(structure.filterBy) : [];
+
+  // ensure selected exists for MultiSelect filters
   $filterBy.forEach((prop) => {
-    if (prop.values) {
-      if (prop.name in meta && meta[prop.name].type === "MultiSelect") {
-        prop.selected = [];
-      }
-    } else {
+    if (prop?.values) {
+      if (prop.name in meta && meta[prop.name]?.type === "MultiSelect") prop.selected = prop.selected ?? [];
+    } else if (prop?.categories) {
       prop.categories.forEach((option) => {
-        if (option.name in meta && meta[option.name].type === "MultiSelect") {
-          option.selected = [];
+        if (option?.name in meta && meta[option.name]?.type === "MultiSelect") {
+          option.selected = option.selected ?? [];
         }
       });
+    } else {
+      // 最低限度兜底：没有 values/categories 的 filter 也别让它炸
+      prop.selected = prop.selected ?? [];
     }
   });
-  addMissingValues();*/
 
-$filterBy = structure.filterBy;
-$filterBy.forEach((prop) => {
-    if (prop.values) {
-        if (prop.name in meta && meta[prop.name].type === "MultiSelect") {
-            prop.selected = [];
-        }
-    } else {
-        prop.categories.forEach((option) => {
-            if (option.name in meta && meta[option.name].type === "MultiSelect") {
-                option.selected = [];
-            }
+  // ✅ compute missing values from data (this is what enables “one-click import” later)
+  function addMissingValues() {
+    $filterBy.forEach((group) => {
+      if (group && "groupName" in group && Array.isArray(group.categories)) {
+        group.categories.forEach((cate) => {
+          const needsFill = !Array.isArray(cate.values) || cate.values.length === 0;
+          if (needsFill) {
+            const topics = new Set();
+            dataMeta.data.forEach((paper) => {
+              const v = paper?.[cate.name];
+              if (Array.isArray(v)) v.forEach((w) => w && topics.add(w));
+            });
+            cate.values = [...topics];
+          }
+          cate.selected = cate.selected ?? [];
         });
-    }
-});
-addMissingValues();
-
-
-  function freqCount(prop, arrValue, freqDict) {
-    if (prop in meta && meta[prop].type === "MultiSelect") {
-      if (arrValue.length == 1 && arrValue[0] === "") {
-        return;
+      } else if (group?.name) {
+        const needsFill = !Array.isArray(group.values) || group.values.length === 0;
+        if (needsFill) {
+          const topics = new Set();
+          dataMeta.data.forEach((paper) => {
+            const v = paper?.[group.name];
+            if (Array.isArray(v)) v.forEach((w) => w && topics.add(w));
+          });
+          group.values = [...topics];
+        }
+        group.selected = group.selected ?? [];
       }
+    });
+
+    $filterBy = $filterBy;
+  }
+
+  addMissingValues();
+
+  // ✅ freq counter (also safe)
+  function freqCount(prop, arrValue, freqDict) {
+    if (prop in meta && meta[prop]?.type === "MultiSelect") {
+      if (!Array.isArray(arrValue)) return;
+      if (arrValue.length === 1 && arrValue[0] === "") return;
       arrValue.forEach((value) => {
-       if (prop in freqDict) {
-          freqDict[prop][value]
-            ? freqDict[prop][value]++
-            : (freqDict[prop][value] = 1);
+        if (!value) return;
+        if (prop in freqDict) {
+          freqDict[prop][value] ? freqDict[prop][value]++ : (freqDict[prop][value] = 1);
         } else {
           freqDict[prop] = {};
           freqDict[prop][value] = 1;
@@ -87,6 +147,8 @@ addMissingValues();
     }
   }
 
+  // init full freq
+  freq = {};
   dataMeta.data.forEach((paper) => {
     Object.entries(paper).forEach(([prop, arrValue]) => {
       freqCount(prop, arrValue, freq);
@@ -94,146 +156,82 @@ addMissingValues();
     paper["selected"] = false;
   });
 
- function addMissingValues() {
-  $filterBy.forEach((group) => {
-    // 分组（有 groupName + categories）
-    if ("groupName" in group) {
-      group.categories.forEach((cate) => {
-        const needsFill =
-          !("values" in cate) ||
-          (Array.isArray(cate.values) && cate.values.length === 0);
-
-        if (needsFill) {
-          const topics = new Set();
-          dataMeta.data.forEach((paper) => {
-            if (cate.name in paper && Array.isArray(paper[cate.name])) {
-              paper[cate.name].forEach((word) => topics.add(word));
-            }
-          });
-          cate.values = [...topics].filter((x) => x !== "");
-        }
-      });
-    } else {
-      // 非分组（只有 name + values）
-      const needsFill =
-        !("values" in group) ||
-        (Array.isArray(group.values) && group.values.length === 0);
-
-      if (needsFill) {
-        const topics = new Set();
-        dataMeta.data.forEach((paper) => {
-          if (group.name in paper && Array.isArray(paper[group.name])) {
-            paper[group.name].forEach((word) => topics.add(word));
-          }
-        });
-        group.values = [...topics].filter((x) => x !== "");
-      }
-    }
-  });
-
-  // 触发 store 更新（确保 UI 重新渲染）
-  $filterBy = $filterBy;
-}
-
-
-  function applyFilters(searchFilter, timeFilters, filterBy) {
-    //This is a shallow copy, we only interested in the order
+  function applyFilters(searchFilter, timeFilters, filterByLocal) {
+    filteredFreq = {};
     let startingPoint = [...dataMeta.data];
 
-    //Filter by search bar
     if (searchFilter !== "" && searchFilter.length > 2) {
       startingPoint = startingPoint.filter((paper) =>
-        paper.Name.toLowerCase().includes(searchFilter.toLowerCase())
+        (paper?.Name ?? "").toLowerCase().includes(searchFilter.toLowerCase())
       );
     }
-    if (timeFilters.start > 0)
+
+    if (timeFilters?.start > 0) {
       startingPoint = startingPoint.filter(
-        (paper) =>
-          timeFilters.start <= +paper.Year && +paper.Year <= timeFilters.end
+        (paper) => timeFilters.start <= +paper.Year && +paper.Year <= timeFilters.end
       );
+    }
 
     const re = new RegExp("([0-9]+)");
 
-    //Filter by categories
-    filterBy.forEach((group) => {
-      if (group.values) {
+    filterByLocal.forEach((group) => {
+      if (group?.values) {
         if (group.selected && group.selected.length > 0) {
-          const selected = group.selected.map((sel) => {
-            return re.test(sel) ? sel.split(") ")[1] : sel;
-          });
+          const selected = group.selected.map((sel) => (re.test(sel) ? sel.split(") ")[1] : sel));
           let res = [];
           startingPoint.forEach((paper) => {
             let found = false;
-            if (Array.isArray(paper[group.name])) {
-              const listCate = paper[group.name];
-              found = true;
-              selected.forEach((prop) => {
-                if (listCate.includes(prop) === false) {
-                  found = false;
-                  return;
-                }
-              });
-            } else if (typeof paper[group.name] === "string") {
-              found = selected.includes(paper[group.name]);
+            const val = paper?.[group.name];
+            if (Array.isArray(val)) {
+              found = selected.every((p) => val.includes(p));
+            } else if (typeof val === "string") {
+              found = selected.includes(val);
             }
-
-            if (found) {
-              res.push(paper);
-            }
+            if (found) res.push(paper);
           });
           startingPoint = res;
         }
-      } else {
+      } else if (group?.categories) {
         group.categories.forEach((option) => {
           if (option.selected && option.selected.length > 0) {
-            const selected = option.selected.map((sel) => {
-              return re.test(sel) ? sel.split(") ")[1] : sel;
-            });
+            const selected = option.selected.map((sel) => (re.test(sel) ? sel.split(") ")[1] : sel));
             let res = [];
             startingPoint.forEach((paper) => {
               let found = false;
-              if (Array.isArray(paper[option.name])) {
-                const listCate = paper[option.name];
-                found = true;
-                selected.forEach((prop) => {
-                  if (listCate.includes(prop) === false) {
-                    found = false;
-                    return;
-                  }
-                });
-              } else if (typeof paper[option.name] === "string") {
-                found = selected.includes(paper[option.name]);
+              const val = paper?.[option.name];
+              if (Array.isArray(val)) {
+                found = selected.every((p) => val.includes(p));
+              } else if (typeof val === "string") {
+                found = selected.includes(val);
               }
-              if (found) {
-                res.push(paper);
-              }
+              if (found) res.push(paper);
             });
             startingPoint = res;
           }
         });
       }
     });
-    Object.entries(startingPoint).forEach(([prop, arrValue]) => {
-      freqCount(prop, arrValue, filteredFreq);
+
+    // recompute filtered freq safely
+    startingPoint.forEach((paper) => {
+      Object.entries(paper).forEach(([prop, arrValue]) => {
+        freqCount(prop, arrValue, filteredFreq);
+      });
     });
-    filteredData = startingPoint.sort((p1, p2) => {
-      if (Number(p1.Year) < Number(p2.Year)) {
-        return 1;
-      } else {
-        return -1;
-      }
-    });
+
+    filteredData = startingPoint.sort((p1, p2) => (+p1.Year < +p2.Year ? 1 : -1));
+
+    // selected topics list
     selectTopics = [];
-    filterBy.forEach((filter) => {
-      if ("groupName" in filter) {
-        filter.categories.forEach((cate) => {
-          selectTopics = selectTopics.concat(cate.selected);
-        });
+    filterByLocal.forEach((filter) => {
+      if (filter && "groupName" in filter && Array.isArray(filter.categories)) {
+        filter.categories.forEach((cate) => (selectTopics = selectTopics.concat(cate.selected ?? [])));
       } else {
-        selectTopics = selectTopics.concat(filter.selected);
+        selectTopics = selectTopics.concat(filter?.selected ?? []);
       }
     });
-    filterBy = [...filterBy];
+
+    filterByLocal = [...filterByLocal];
   }
 
   function toggleView() {
@@ -248,6 +246,7 @@ addMissingValues();
 
   let breakPoint = 1024;
   let width;
+  $: width = innerWidth;
   $: if (width >= breakPoint) {
     drawerHidden = false;
     activateClickOutside = false;
@@ -264,22 +263,18 @@ addMissingValues();
 
   const clearSelections = () => {
     $filterBy.forEach((prop) => {
-      if (prop.values) {
-        prop.selected = [];
-      } else {
-        prop.categories.forEach((option) => {
-          option.selected = [];
-        });
-      }
+      if (prop?.values) prop.selected = [];
+      else if (prop?.categories) prop.categories.forEach((option) => (option.selected = []));
     });
     $filterBy = $filterBy;
   };
 </script>
 
+
 <svelte:head>
     <title>{structure.topView.title}</title> 
 </svelte:head>
-<svelte:window bind:innerHeight bind:innerWidth={width} />
+<svelte:window bind:innerHeight bind:innerWidth />
 
 <Header
   detailView={structure.detailView.show}
