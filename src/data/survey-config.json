@@ -1,7 +1,8 @@
 {
   "filterBy": [
-    { "name": "Topic", "values": [] },
-    { "name": "Year", "values": [] }
+    {
+      "name": "Topic"
+    }
   ],
   "detailView": {
     "view": "normal",
@@ -14,7 +15,7 @@
   },
   "topView": {
     "title": "Hybrid User Interfaces",
-    "description": "Interactive survey browser (dev config).",
+    "description": "Interactive survey browser.",
     "authors": "—",
     "addEntry": {
       "description": [],
