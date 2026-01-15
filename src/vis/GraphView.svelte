@@ -1,5 +1,6 @@
 <script>
-  export let data = [];
+import { hoveredPaperKey } from "../store";  
+export let data = [];
 
   // ---- 1) 测试数据：当 data 为空时用于占位，保证页面可运行 ----
   const fallbackPapers = [
@@ -52,12 +53,20 @@
     });
     return res;
   }
+
+// ✅ 生成稳定 key：优先 DOI，否则 Name-Year
+  const paperKey = (p) => (p?.DOI ? `doi:${p.DOI}` : `name:${p?.Name ?? ""}-${p?.Year ?? ""}`);
+
 </script>
 
 <div class="graph-content">
   <div class="grid">
-    {#each papers as paper, i}
-      <div class="paper-card">
+   {#each papers as paper, i}
+  <div
+    class="paper-card"
+    on:mouseenter={() => hoveredPaperKey.set(paperKey(paper))}
+    on:mouseleave={() => hoveredPaperKey.set(null)}
+  >
         <div class="image-slot">
           {#if imgByIndex[i]}
             <img src={imgByIndex[i]} alt="uploaded preview" />
