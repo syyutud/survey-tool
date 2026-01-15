@@ -1,7 +1,9 @@
 {
   "filterBy": [
     {
-      "name": "Topic"
+      "name": "Topic",
+      "values": ["Quantum Physics", "Food", "Magic", "Utensils"],
+      "selected": []
     }
   ],
   "detailView": {
@@ -10,15 +12,18 @@
   },
   "summaryView": {
     "view": "text",
-    "showImg": false,
+    "showImg": true,
     "show": ["Name", "Year", "Topic"]
   },
   "topView": {
     "title": "Hybrid User Interfaces",
-    "description": "Interactive survey browser.",
-    "authors": "—",
+    "description": "Test config for development.",
+    "authors": "You",
     "addEntry": {
-      "description": [],
+      "description": [
+        "If you know a peer-reviewed published work that presents a contribution missing in our browser, please submit an entry!",
+        "Filling out the form below will create a json entry that can be added to an issue in our Github repository."
+      ],
       "github": ""
     }
   }
