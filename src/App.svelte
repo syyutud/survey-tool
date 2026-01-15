@@ -246,19 +246,18 @@
   }
 
   let breakPoint = 1024;
-  let width;
-  $: width = innerWidth;
-  $: if (width >= breakPoint) {
-    drawerHidden = false;
-    activateClickOutside = false;
-    showVis = true;
-    showPapers = true;
-  } else {
-    drawerHidden = true;
-    activateClickOutside = true;
-    showVis = false;
-    showPapers = true;
-  }
+ $: if (innerWidth >= breakPoint) {
+  drawerHidden = false;
+  activateClickOutside = false;
+  showVis = true;
+  showPapers = true;
+} else {
+  drawerHidden = true;
+  activateClickOutside = true;
+  showVis = false;
+  showPapers = true;
+}
+
 
   $: applyFilters($searchFilter, $timeFilters, $filterBy);
 
@@ -283,7 +282,7 @@
   {freq}
   closeFn={() => (drawerHidden = !drawerHidden)}
   toggleParams={ {
-    hidden: width >= breakPoint,
+    hidden: innerWidth >= breakPoint,
     func: toggleView,
     vis: showVis,
     papers: showPapers
@@ -343,7 +342,7 @@
   <!--  -->
   <Splitpanes 
     style="height:{innerHeight - headerPx}px;width:{innerWidth +
-      (width <= breakPoint || drawerHidden
+      (innerWidth <= breakPoint || drawerHidden
         ? 2
         : transitionParams.x + 2)}px;float: right;position:initial;"
   >
