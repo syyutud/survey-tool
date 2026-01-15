@@ -1,24 +1,28 @@
 {
-    "meta": [
-        {"name": "Topic", "type": "MultiSelect"},
-        {"name": "Year", "type": "String"}
-    ],
-    "data": [
-        {
-            "Name": "Exploring Quantum Sandwiches",
-            "Year": "2025",
-            "Bibtex": "@INPROCEEDINGS{qsandwich2025, author={John Doe}, title={Exploring Quantum Sandwiches}, booktitle={Fictional Conf}, year={2025}}",
-            "DOI": "10.1234/qsandwich2025",
-            "Authors": ["John Doe", "Jane Roe"],
-            "Topic": ["Quantum Physics", "Food"]
-        },
-        {
-            "Name": "The Invisible Spoon: A Study",
-            "Year": "2024",
-            "Bibtex": "@INPROCEEDINGS{invisiblespoon2024, author={Alice Smith}, title={The Invisible Spoon}, booktitle={Fictional Conf}, year={2024}}",
-            "DOI": "10.1234/invisiblespoon2024",
-            "Authors": ["Alice Smith"],
-            "Topic": ["Magic", "Utensils"]
-        }
-    ]
+  "meta": [
+    { "name": "Name", "type": "String" },
+    { "name": "Authors", "type": "MultiSelect" },
+    { "name": "Year", "type": "String" },
+    { "name": "DOI", "type": "String" },
+    { "name": "Bibtex", "type": "String" },
+    { "name": "Topic", "type": "MultiSelect" }
+  ],
+  "data": [
+    {
+      "Name": "Exploring Quantum Sandwiches",
+      "Year": "2025",
+      "Bibtex": "@INPROCEEDINGS{qsandwich2025, author={John Doe}, title={Exploring Quantum Sandwiches}, booktitle={Fictional Conf}, year={2025}}",
+      "DOI": "10.1234/qsandwich2025",
+      "Authors": ["John Doe", "Jane Roe"],
+      "Topic": ["Quantum Physics", "Food"]
+    },
+    {
+      "Name": "The Invisible Spoon: A Study",
+      "Year": "2024",
+      "Bibtex": "@INPROCEEDINGS{invisiblespoon2024, author={Alice Smith}, title={The Invisible Spoon}, booktitle={Fictional Conf}, year={2024}}",
+      "DOI": "10.1234/invisiblespoon2024",
+      "Authors": ["Alice Smith"],
+      "Topic": ["Magic", "Utensils"]
+    }
+  ]
 }
